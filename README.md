@@ -1,3 +1,15 @@
+# bussidn note :
+
+Hello this is my version of the kata?
+
+I've tried a functional approach with :
+  - high expressiveness at highest business level
+  - logs handled by a monadic approach
+  - results (for tests and deployment) coded like sealed types with pattern matching (match method)
+  - decoupling of business and logs
+  
+ Below is the orignial README
+
 # Untangled Conditionals Kata
 
 [![Build Status](https://travis-ci.org/tomphp/untangled-conditionals-kata.svg?branch=master)](https://travis-ci.org/tomphp/untangled-conditionals-kata)
