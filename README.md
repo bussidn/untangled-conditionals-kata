@@ -1,6 +1,6 @@
 # bussidn note :
 
-Hello this is my version of the kata?
+Hello this is my version of the kata
 
 I've tried a functional approach with :
   - high expressiveness at highest business level
