@@ -1,34 +1,27 @@
-import dependencies.Config;
-import dependencies.Emailer;
-import dependencies.Project;
-import org.junit.jupiter.api.BeforeEach;
+package pipeline;
+
 import org.junit.jupiter.api.Test;
+import pipeline.config.Config;
+import pipeline.email.Emailer;
+import pipeline.project.Project;
 
 import java.util.Arrays;
 
-import static dependencies.TestStatus.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class PipelineTest {
-    private Config config = mock(Config.class);
-    private CapturingLogger log = new CapturingLogger();
-    private Emailer emailer = mock(Emailer.class);
-
-    private Pipeline pipeline;
-
-    @BeforeEach
-    void setUp() {
-        pipeline = new Pipeline(config, emailer, log);
-    }
+    private final Config config = mock(Config.class);
+    private final CapturingLogger log = new CapturingLogger();
+    private final Emailer emailer = mock(Emailer.class);
 
     @Test
     void project_with_tests_that_deploys_successfully_with_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(true);
+        Pipeline pipeline = pipelineSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(PASSING_TESTS)
-                .setDeploysSuccessfully(true)
+                .withSuccessfulTests()
+                .withSuccessfulDeployment()
                 .build();
 
         pipeline.run(project);
@@ -42,13 +35,18 @@ class PipelineTest {
         verify(emailer).send("Deployment completed successfully");
     }
 
+    private Pipeline pipelineSendingSummary() {
+        when(config.sendEmailSummary()).thenReturn(true);
+        return Pipeline.create(config, emailer, log);
+    }
+
     @Test
     void project_with_tests_that_deploys_successfully_without_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(false);
+        Pipeline pipeline = pipelineNotSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(PASSING_TESTS)
-                .setDeploysSuccessfully(true)
+                .withSuccessfulTests()
+                .withSuccessfulDeployment()
                 .build();
 
         pipeline.run(project);
@@ -62,13 +60,18 @@ class PipelineTest {
         verify(emailer, never()).send(any());
     }
 
+    private Pipeline pipelineNotSendingSummary() {
+        when(config.sendEmailSummary()).thenReturn(false);
+        return Pipeline.create(config, emailer, log);
+    }
+
     @Test
     void project_without_tests_that_deploys_successfully_with_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(true);
+        Pipeline pipeline = pipelineSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(NO_TESTS)
-                .setDeploysSuccessfully(true)
+                .withoutTests()
+                .withSuccessfulDeployment()
                 .build();
 
         pipeline.run(project);
@@ -84,11 +87,11 @@ class PipelineTest {
 
     @Test
     void project_without_tests_that_deploys_successfully_without_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(false);
+        Pipeline pipeline = pipelineNotSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(NO_TESTS)
-                .setDeploysSuccessfully(true)
+                .withoutTests()
+                .withSuccessfulDeployment()
                 .build();
 
         pipeline.run(project);
@@ -104,10 +107,10 @@ class PipelineTest {
 
     @Test
     void project_with_tests_that_fail_with_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(true);
+        Pipeline pipeline = pipelineSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(FAILING_TESTS)
+                .withFailingTests()
                 .build();
 
         pipeline.run(project);
@@ -122,10 +125,10 @@ class PipelineTest {
 
     @Test
     void project_with_tests_that_fail_without_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(false);
+        Pipeline pipeline = pipelineNotSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(FAILING_TESTS)
+                .withFailingTests()
                 .build();
 
         pipeline.run(project);
@@ -140,11 +143,11 @@ class PipelineTest {
 
     @Test
     void project_with_tests_and_failing_build_with_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(true);
+        Pipeline pipeline = pipelineSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(PASSING_TESTS)
-                .setDeploysSuccessfully(false)
+                .withSuccessfulTests()
+                .withFailingDeployment()
                 .build();
 
         pipeline.run(project);
@@ -160,11 +163,11 @@ class PipelineTest {
 
     @Test
     void project_with_tests_and_failing_build_without_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(false);
+        Pipeline pipeline = pipelineNotSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(PASSING_TESTS)
-                .setDeploysSuccessfully(false)
+                .withSuccessfulTests()
+                .withFailingDeployment()
                 .build();
 
         pipeline.run(project);
@@ -180,11 +183,11 @@ class PipelineTest {
 
     @Test
     void project_without_tests_and_failing_build_with_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(true);
+        Pipeline pipeline = pipelineSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(NO_TESTS)
-                .setDeploysSuccessfully(false)
+                .withoutTests()
+                .withFailingDeployment()
                 .build();
 
         pipeline.run(project);
@@ -200,11 +203,11 @@ class PipelineTest {
 
     @Test
     void project_without_tests_and_failing_build_without_email_notification() {
-        when(config.sendEmailSummary()).thenReturn(false);
+        Pipeline pipeline = pipelineNotSendingSummary();
 
         Project project = Project.builder()
-                .setTestStatus(NO_TESTS)
-                .setDeploysSuccessfully(false)
+                .withoutTests()
+                .withFailingDeployment()
                 .build();
 
         pipeline.run(project);

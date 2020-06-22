@@ -1,4 +1,6 @@
-import dependencies.Logger;
+package pipeline;
+
+import pipeline.log.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
