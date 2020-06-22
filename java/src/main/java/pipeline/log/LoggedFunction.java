@@ -10,8 +10,7 @@ public interface LoggedFunction<T, R> {
 
     default <V> LoggedFunction<T, V> andThen(LoggedFunction<? super R, ? extends V> after) {
         Objects.requireNonNull(after);
-        //noinspection unchecked
-        return (t, logger) -> (Logged<V>) this.apply(t, logger).flatMap(after);
+        return (t, logger) -> this.apply(t, logger).flatMap(after);
     }
 
     default BiConsumer<T, Logger> thenFinally(BiConsumer<? super R, ? super Logger> after) {
